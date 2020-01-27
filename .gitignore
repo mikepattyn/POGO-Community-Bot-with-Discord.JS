@@ -1,0 +1,6 @@
+auth.json
+lib/
+package-lock.json
+node_modules/*
+.env
+GSC.json
