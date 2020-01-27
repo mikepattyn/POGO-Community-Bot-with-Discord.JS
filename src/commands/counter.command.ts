@@ -11,7 +11,7 @@ export class CounterCommand {
         handler.onCommand("!counters")
             .minArgs(1)
             .allowedChannels(["670545170386780170"])
-            .whenInvalid("Something went wrong")
+            .whenInvalid({ replyToUser: true, minimumArgs: "Did you forget to type in the pokemon name?", allowedChannels: "Please use this command in the help channel."})
             .do(async (args: string[], rawArgs: string, message: Message) => {
                 var pokemonService = dependencyInjectionContainer.get(PokemonService)
                 let messageService: MessageService = dependencyInjectionContainer.get(MessageService)
