@@ -19,7 +19,14 @@ export class PokemonStore {
             console.log(error)
         }
     }
-
+    async get(key: string) {
+        try {
+            return await this.datastore.get(key)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    
     async searchByName(name: string) {
         var retVal = null
         const q = this.datastore
@@ -32,13 +39,6 @@ export class PokemonStore {
         return retVal
     }
 
-    async get(key: string) {
-        try {
-            return await this.datastore.get(key)
-        } catch (error) {
-            console.log(error)
-        }
-    }
     async getNamesFromRapiAPI() {
         var retVal = null
         await axios({

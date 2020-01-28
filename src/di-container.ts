@@ -8,6 +8,7 @@ import { GoogleCloudServices } from "./services/google-cloud.services";
 import { GoogleCloudClient } from "./clients/google-cloud-vision.client";
 import { PokemonStore } from "./stores/pokemon.store";
 import { RaidStore } from "./stores/raid.store";
+import { PlayerStore } from "./stores/player.store";
 
 const dependencyInjectionContainer = new Container();
 // Services
@@ -22,5 +23,6 @@ dependencyInjectionContainer.bind<GoogleCloudClient>(GoogleCloudClient).toSelf()
 // Stores
 dependencyInjectionContainer.bind<RaidStore>(RaidStore).toSelf().inSingletonScope();
 dependencyInjectionContainer.bind<PokemonStore>(PokemonStore).toSelf().inSingletonScope();
+dependencyInjectionContainer.bind<PlayerStore>(PlayerStore).toSelf().inSingletonScope();
 
 export { dependencyInjectionContainer };
