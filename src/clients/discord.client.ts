@@ -1,6 +1,6 @@
 import { Client, TextChannel, Message, MessageReaction, User } from "discord.js";
 import { MessageHandler } from "discord-message-handler";
-import { MessageReactionHandler } from "../message.reaction.handler";
+import { MessageReactionHandler } from "./discord-message-handler/message.reaction.handler";
 import { MessageService } from "../services/message.service";
 import { dependencyInjectionContainer } from "../di-container";
 import { RaidCommand } from "../commands/raid.command";
