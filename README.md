@@ -1,5 +1,3 @@
-A raiding bot to support my pokemon go community on discord. If it's a success i will continue development and make it accessible for all.
-
 Commands so far are: 
 
 !register (RANK) (FIRSTNAME)(INGAMENAME) (INGAMELVL)
