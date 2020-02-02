@@ -11,7 +11,9 @@ import { CounterCommand } from "../commands/counter.command";
 import { JoinCommand } from "../commands/join.command"
 import { ScanRaidImageCommand } from "../commands/scanraidimage.command";
 
-const allowedChannels: string[] = [ChannelIds.Welcome.toString(), ChannelIds.RaidRoeselare.toString(), ChannelIds.RaidIzegem.toString(), ChannelIds.RaidScanChannel.toString()]
+const allowedEmojisRaid = ["", "", "", ""];
+const allowedEmojisRaidExtra = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣'];
+const allowedEmojisRank = ["", "", "", ""];
 
 export class DiscordClient {
 
@@ -52,15 +54,23 @@ export class DiscordClient {
     }
     onMessageReactionAdd() {
         this.client.on('messageReactionAdd', async (reaction: MessageReaction, user: User) => {
-            if (allowedChannels.some(x => x === reaction.message.channel.id)) {
-                this.messageReactionHandler.handleAdd(reaction, user)
+            if (allowedEmojisRaid.some(x => x === reaction.message.channel.id)) {
+                this.messageReactionHandler.handleJoiningRaid(reaction, user)
+            } else if (allowedEmojisRaidExtra.some(x => x === reaction.message.channel.id)) {
+                this.messageReactionHandler.handleAddingExtra(reaction, user)
+            } else if (allowedEmojisRank.some(x => x === reaction.message.channel.id)) {
+                this.messageReactionHandler.handleJoiningRank(reaction, user)
             }
         })
     }
     onMessageReactionRemove() {
         this.client.on('messageReactionRemove', async (reaction: MessageReaction, user: User) => {
-            if (allowedChannels.some(x => x === reaction.message.channel.id)) {
-                this.messageReactionHandler.handleRemove(reaction, user)
+            if (allowedEmojisRaid.some(x => x === reaction.message.channel.id)) {
+                this.messageReactionHandler.handleLeavingRaid(reaction, user)
+            } else if (allowedEmojisRaidExtra.some(x => x === reaction.message.channel.id)) {
+                this.messageReactionHandler.handleRemovingExtra(reaction, user)
+            } else if (allowedEmojisRank.some(x => x === reaction.message.channel.id)) {
+                this.messageReactionHandler.handleLeavingRank(reaction, user)
             }
         })
     }
