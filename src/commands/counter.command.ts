@@ -10,15 +10,16 @@ export class CounterCommand {
     static setup(handler: MessageHandler) {
         handler.onCommand("!counters")
             .minArgs(1)
-            .allowedChannels(["670545170386780170"])
-            .whenInvalid({ replyToUser: true, minimumArgs: "Did you forget to type in the pokemon name?", allowedChannels: "Please use this command in the help channel."})
+            // .allowedChannels(["670545170386780170"])
+            // .whenInvalid({ replyToUser: true, minimumArgs: "Did you forget to type in the pokemon name?", allowedChannels: "Please use this command in the help channel."})
+            .whenInvalid("ti ni just")
             .do(async (args: string[], rawArgs: string, message: Message) => {
                 var pokemonService = dependencyInjectionContainer.get(PokemonService)
                 let messageService: MessageService = dependencyInjectionContainer.get(MessageService)
-                if(args.length == 1) {
-                    if(args[0] == "list") {
+                if (args.length == 1) {
+                    if (args[0] == "list") {
                         var countersList = await pokemonService.getCountersList()
-                        if(!isNullOrUndefined(countersList)){
+                        if (!isNullOrUndefined(countersList)) {
                             messageService.handlePokemonCounterListMessage(countersList)
                         } else {
                             message.delete()
@@ -26,7 +27,7 @@ export class CounterCommand {
                         }
                     } else {
                         var searchResult: any = await pokemonService.searchPokemonCounter(args[0])
-                        if(!isNull(searchResult)  && searchResult.length > 0) {
+                        if (!isNull(searchResult) && searchResult.length > 0) {
                             messageService.handlePokemonCounterMessage(searchResult[0]) // take first
                         } else {
                             message.delete()

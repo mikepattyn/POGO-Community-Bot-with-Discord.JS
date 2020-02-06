@@ -1,7 +1,6 @@
 import { MessageHandler } from "discord-message-handler";
 import { Message, TextChannel, RichEmbed } from "discord.js";
 import { isNullOrUndefined, isNull } from "util";
-import { GoogleCloudClient } from "../clients/google-cloud-vision.client";
 import { dependencyInjectionContainer } from "../di-container";
 import { ChannelIds } from "../models/channelIds.enum";
 import { RaidStore } from "../stores/raid.store";
@@ -10,33 +9,35 @@ import { pokemon } from "./../resources/statics/pokemon"
 import { GymInfo } from "../models/GymInfo";
 import { DiscordHelper } from "../helpers/discord.helper";
 import { MessageService } from "../services/message.service";
+import { ApiClient } from "../clients/apiClient";
 
 const arrayWithGenerations: any[] = [pokemon.gen1, pokemon.gen2, pokemon.gen3, pokemon.gen4, pokemon.gen5];
 const allowedChannels: string[] = ["668134717614456895"]
 
 var uuidv4 = require('uuid/v4')
 export class ScanRaidImageCommand {
-    private static client: GoogleCloudClient = dependencyInjectionContainer.get<GoogleCloudClient>(GoogleCloudClient)
-    private static messageService: MessageService = dependencyInjectionContainer.get<MessageService>(MessageService)
-    private static pokemonStore: PokemonStore = dependencyInjectionContainer.get<PokemonStore>(PokemonStore)
+    private static messageService: MessageService = dependencyInjectionContainer.get<MessageService>(MessageService);
+    private static pokemonStore: PokemonStore = dependencyInjectionContainer.get<PokemonStore>(PokemonStore);
+    private static client: ApiClient = dependencyInjectionContainer.get<ApiClient>(ApiClient);
 
     static setup(handler: MessageHandler) {
         handler.onCommand("!scan")
             .minArgs(1)
             .matches('([a-z]|[A-Z])([1-5]{1})')
-            .allowedChannels(allowedChannels)
-            .whenInvalid({
-                replyToUser: true, 
-                minimumArgs: "Heb je vergeten de T1-5 toe te voegen?", 
-                regexPattern: "Heb je vergeten de T1-5 toe te voegen?", 
-                allowedChannels: `Het commando !scan T1-5 enkel toegestaan in ${this.messageService.message?.guild.channels.filter(x=> ["668134717614456895"].indexOf(x.id) > -1).map(channel => channel.name)}`
-            })
+            // .allowedChannels(allowedChannels)
+            // .whenInvalid({
+            //     replyToUser: true,
+            //     minimumArgs: "Heb je vergeten de T1-5 toe te voegen?",
+            //     regexPattern: "Heb je vergeten de T1-5 toe te voegen?",
+            //     allowedChannels: `Het commando !scan T1-5 enkel toegestaan in ${this.messageService.message?.guild.channels.filter(x => ["668134717614456895"].indexOf(x.id) > -1).map(channel => channel.name)}`
+            // })
+            .whenInvalid("ti ni goe")
             .deleteInvocation()
             .do(async (args: string[], rawArgs: string, message: Message) => {
                 var returnMessage: RichEmbed | string = "Ti etwa hjil skjif gegoan"
 
                 var tiers = 0
-                if(!isNullOrUndefined(args) && !isNullOrUndefined(args[0]) && args[0].length === 2) {
+                if (!isNullOrUndefined(args) && !isNullOrUndefined(args[0]) && args[0].length === 2) {
                     tiers = Number([args[0][1]])
                 }
                 if (isNullOrUndefined(this.client) || isNullOrUndefined(this.pokemonStore)) {
@@ -49,7 +50,7 @@ export class ScanRaidImageCommand {
                 if (isNullOrUndefined(attachment.url) && attachment.url != "") {
                     return this.handleError(message, "Something went wrong fetching attachement url. Please try again. If this problem persists, please contact support.")
                 }
-                var textResults: string[] | null = await this.client.readImage(attachment.url)
+                var textResults: string[] | null = await this.client.post("/scans", null, { url: attachment.url })
                 if (isNullOrUndefined(textResults)) {
                     return this.handleError(message, "Something went wrong getting text result from your image. Please try again. If this problem persists, please contact support.")
                 }
@@ -58,7 +59,7 @@ export class ScanRaidImageCommand {
                 var resultWithoutNumbers: any[] = []
 
                 // Split arrays into string with and without numbers
-                textResults.forEach((result: string) => {
+                textResults!.forEach((result: string) => {
                     if (new RegExp("[0-9]").test(result))
                         resultWithNumbers.push(result)
                     else
@@ -102,17 +103,17 @@ export class ScanRaidImageCommand {
 
                 if (isHatched) {
                     // asume the gym name is above the pokemon name
-                    var findRes = resultWithoutNumbers.filter(x=> x.indexOf(pokemonMatch.substring(2)) > -1)[0]
-                    gymName = resultWithoutNumbers[resultWithoutNumbers.indexOf(findRes) - 1]  
+                    var findRes = resultWithoutNumbers.filter(x => x.indexOf(pokemonMatch.substring(2)) > -1)[0]
+                    gymName = resultWithoutNumbers[resultWithoutNumbers.indexOf(findRes) - 1]
                 } else {
                     // in 4 out 5 times it was this first element so taking first
                     gymName = resultWithoutNumbers[0];
                 }
-                
+
                 var info = new GymInfo([gymName, pokemonMatch, timeLeft])
                 returnMessage = new RichEmbed()
                     .setFooter(`${DiscordHelper.findDisplayName(message!)}`, `${DiscordHelper.findDisplayAvatar(message!)}`)
-                
+
                 if (isHatched) {
                     returnMessage.setTitle(`T${tiers} - ${info.pokemon}`)
                     returnMessage.setDescription(`Gym: ${info.titel!}.\nIt disapears at ${info.dtEnd}`);

@@ -10,6 +10,7 @@ import { ChannelIds } from "../models/channelIds.enum";
 import { CounterCommand } from "../commands/counter.command";
 import { JoinCommand } from "../commands/join.command"
 import { ScanRaidImageCommand } from "../commands/scanraidimage.command";
+import { TestCommand } from "../commands/test.command";
 
 const allowedEmojisRaid = ["", "", "", ""];
 const allowedEmojisRaidExtra = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣'];
@@ -84,6 +85,7 @@ export class DiscordClient {
         CounterCommand.setup(handler)
         JoinCommand.setup(handler)
         ScanRaidImageCommand.setup(handler)
+        TestCommand.setup(handler)
     }
 }
 

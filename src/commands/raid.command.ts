@@ -10,7 +10,8 @@ export class RaidCommand {
         handler.onCommand("!raid")
             .minArgs(5)
             .matches(Raid.RaidCommandRegularExpression())
-            .whenInvalid({replyToUser: true, minimumArgs: Raid.RaidCommandInvalidErrorMessage(), regexPattern: Raid.RaidCommandInvalidErrorMessage()})
+            .whenInvalid("Ti ni goe")
+            // .whenInvalid({replyToUser: true, minimumArgs: Raid.RaidCommandInvalidErrorMessage(), regexPattern: Raid.RaidCommandInvalidErrorMessage()})
             .do(async (args: string[], rawArgs: string, message: Message) => {
                 var messageService: MessageService = dependencyInjectionContainer.get(MessageService)
                 await messageService.handleRaidStart()
