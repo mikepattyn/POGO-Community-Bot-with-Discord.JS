@@ -3,6 +3,15 @@ import { isNullOrUndefined } from "util";
 import { inject, injectable } from "inversify";
 import { Logger } from "../logger";
 
+export const requestInterceptor = async (config: AxiosRequestConfig) => {
+    if (!isNullOrUndefined(config) && !isNullOrUndefined(config.headers) && !isNullOrUndefined(config.headers.common)) {
+        config.headers["Accept"] = "application/json";
+    }
+    return Promise.resolve(config);
+}
+export const errorInterceptor = async (error: AxiosError) => {
+    return Promise.reject(error);
+}
 @injectable()
 export class ApiClient {
 
@@ -10,35 +19,20 @@ export class ApiClient {
 
     constructor(@inject(Logger) private logger: Logger) {
         // Add a request interceptor
-        axios.interceptors.request.use(function (config) {
-            if(!isNullOrUndefined(config) && !isNullOrUndefined(config.headers) && !isNullOrUndefined(config.headers.common)) {
-                var headers = config.headers.common;
-                if (isNullOrUndefined(headers.Accept)) {
-                    headers.Accept = "application/json"
-                }
-            }
-            // Do something before request is sent
-            console.log("Config: ",config)
-            return config;
-        }, function (error) {
-            // Do something with request error
-            return Promise.reject(error);
-        });
+        axios.interceptors.request.use(requestInterceptor, errorInterceptor);
     }
 
-    async post(url: string, headers: any, body: any) {
-        var retVal = null
+    async post(url: string, body: any): Promise<AxiosResponse> {
+        var retVal: AxiosResponse = { data: null, status: -1, statusText: "UhOh", headers: null, config: {} }
 
         const config: AxiosRequestConfig = {}
 
         if (!isNullOrUndefined(url))
             config.url = `${this.baseUrl}${url}`
-        if (!isNullOrUndefined(headers))
-            config.headers = headers
         if (!isNullOrUndefined(body))
             config.data = body;
 
-        axios.post(config.url!, config.data)
+        await axios.post(config.url!, config.data)
             .then((response: AxiosResponse) => {
                 console.log(response)
                 retVal = response
