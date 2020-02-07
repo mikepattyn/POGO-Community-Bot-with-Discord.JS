@@ -4,5 +4,3 @@ import { EnforeAcceptApplicationJson } from "./functions/EnforeAcceptApplication
 export const RequestInterceptor = async (config: AxiosRequestConfig) => {
     return await EnforeAcceptApplicationJson(config)
 }
-
-

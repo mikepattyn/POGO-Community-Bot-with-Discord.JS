@@ -4,4 +4,3 @@ import { EnforceErrorGetsThrownWhenUnsuccessfulResponse } from "./functions/Enfo
 export const ResponseInterceptor = (response: AxiosResponse) => {
     EnforceErrorGetsThrownWhenUnsuccessfulResponse(response)
 }
-
