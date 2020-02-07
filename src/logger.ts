@@ -5,7 +5,7 @@ const { Logging } = require('@google-cloud/logging');
 @injectable()
 export class Logger {
     private projectId = process.env.CLOUD_SQL_CONNECTION_NAME
-    private logName = 'Pokebot.Api.Debug'
+    private logName = 'Pokebot.Bot.Debug'
     private logging = new Logging({ projectId: this.projectId })
 
     async log(data: string) {
