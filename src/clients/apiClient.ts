@@ -6,6 +6,7 @@ import { Logger } from "../logger";
 export const requestInterceptor = async (config: AxiosRequestConfig) => {
     if (!isNullOrUndefined(config) && !isNullOrUndefined(config.headers) && !isNullOrUndefined(config.headers.common)) {
         config.headers["Accept"] = "application/json";
+        config.headers["Authorization"] = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1pa2VAZ2l2dGFwcC5uZXQiLCJpYXQiOjE1ODExMDEyMTQsImV4cCI6MTU4MTE0NDQxNH0.XK69HvgoPJoXjYPZftjjcUCN1EzHK_KFr2myUC8r3s0";
     }
     return Promise.resolve(config);
 }

@@ -11,19 +11,28 @@ import { CounterCommand } from "../commands/counter.command";
 import { JoinCommand } from "../commands/join.command"
 import { ScanRaidImageCommand } from "../commands/scanraidimage.command";
 import { TestCommand } from "../commands/test.command";
-
+import { inject, injectable } from "inversify";
+import { ApiClient } from "./apiClient";
+import { AxiosResponse, AxiosError } from "axios";
+import { DataPlayer } from "../dbmodels/classes/DataPlayer";
+import { IDataPlayer } from "../dbmodels/interfaces/IDataPlayer";
+import moment from "moment";
 const allowedEmojisRaid = ["", "", "", ""];
 const allowedEmojisRaidExtra = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣'];
 const allowedEmojisRank = ["", "", "", ""];
 
+@injectable()
 export class DiscordClient {
 
     client: Client = new Client()
     handler: MessageHandler = new MessageHandler()
     messageReactionHandler: MessageReactionHandler = new MessageReactionHandler()
-    messageService: MessageService = dependencyInjectionContainer.get(MessageService)
 
     channels: TextChannel[] = []
+
+    private apiClient: ApiClient = dependencyInjectionContainer.get<ApiClient>(ApiClient);
+    private messageService: MessageService = dependencyInjectionContainer.get<MessageService>(MessageService);
+
     constructor() {
         // Setup commands
         this.setupCommands(this.handler)
@@ -42,11 +51,21 @@ export class DiscordClient {
         })
     }
 
-    async onMessage() {
-        this.client.on('message', (message: Message) => {
+    onMessage() {
+        this.client.on('message', async (message: Message) => {
             if (message.type === "GUILD_MEMBER_JOIN") {
-                var guildMemberId = message.author.id
-                console.log(`Member with id: ${guildMemberId} joined discord.`)
+                var newPlayer: IDataPlayer = {
+                    Id: -1,
+                    DiscordId: message.author.id,
+                    DateJoined: moment(new Date()).format('YYYY/MM/DD HH:mm:ss'),
+                    FirstName: null,
+                    Nickname: null,
+                    Level: null,
+                    Team: null
+                }
+                var result: AxiosResponse = await this.apiClient.post("/players", newPlayer)
+
+                console.log(`Member with id: ${newPlayer.DiscordId} joined discord.`)
             } else if (message.type === "DEFAULT") {
                 this.messageService.setMessage(message)
                 this.handler.handleMessage(message)

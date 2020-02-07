@@ -10,6 +10,8 @@ import { GymInfo } from "../models/GymInfo";
 import { DiscordHelper } from "../helpers/discord.helper";
 import { MessageService } from "../services/message.service";
 import { ApiClient } from "../clients/apiClient";
+import { AxiosResponse } from "axios";
+import { Logger } from "../logger";
 
 const arrayWithGenerations: any[] = [pokemon.gen1, pokemon.gen2, pokemon.gen3, pokemon.gen4, pokemon.gen5];
 const allowedChannels: string[] = ["668134717614456895"]
@@ -19,7 +21,7 @@ export class ScanRaidImageCommand {
     private static messageService: MessageService = dependencyInjectionContainer.get<MessageService>(MessageService);
     private static pokemonStore: PokemonStore = dependencyInjectionContainer.get<PokemonStore>(PokemonStore);
     private static client: ApiClient = dependencyInjectionContainer.get<ApiClient>(ApiClient);
-
+    private static logger: Logger = dependencyInjectionContainer.get<Logger>(Logger)
     static setup(handler: MessageHandler) {
         handler.onCommand("!scan")
             .minArgs(1)
@@ -50,7 +52,15 @@ export class ScanRaidImageCommand {
                 if (isNullOrUndefined(attachment.url) && attachment.url != "") {
                     return this.handleError(message, "Something went wrong fetching attachement url. Please try again. If this problem persists, please contact support.")
                 }
-                var textResults: string[] | null = await this.client.post("/scans", null, { url: attachment.url })
+                var response: AxiosResponse = await this.client.post("/scans", { url: attachment.url })
+                var textResults: string[] | null = null
+
+                if (response.status >= 200 && response.status < 300) {
+                    textResults = response.data.textResults
+                } else {
+                    this.logger.log(CustomErrors[response.data.error])
+                }
+
                 if (isNullOrUndefined(textResults)) {
                     return this.handleError(message, "Something went wrong getting text result from your image. Please try again. If this problem persists, please contact support.")
                 }
@@ -104,30 +114,40 @@ export class ScanRaidImageCommand {
                 if (isHatched) {
                     // asume the gym name is above the pokemon name
                     var findRes = resultWithoutNumbers.filter(x => x.indexOf(pokemonMatch.substring(2)) > -1)[0]
-                    gymName = resultWithoutNumbers[resultWithoutNumbers.indexOf(findRes) - 1]
+                    var index = resultWithoutNumbers.indexOf(findRes) - 1
+                    gymName = index > 0 ? `${resultWithoutNumbers[index - 1]} ${resultWithoutNumbers[index]}` : resultWithoutNumbers[index]
+
                 } else {
                     // in 4 out 5 times it was this first element so taking first
-                    gymName = resultWithoutNumbers[0];
+                    var searchResult: string = textResults.filter(x => textResults!.indexOf(timeLeft) > -1)[0]
+                    var index = resultWithoutNumbers.indexOf(searchResult)
+                    gymName = index > 0 ? `${resultWithoutNumbers[index - 1]} ${resultWithoutNumbers[index]}` : resultWithoutNumbers[index]
                 }
 
                 var info = new GymInfo([gymName, pokemonMatch, timeLeft])
                 returnMessage = new RichEmbed()
-                    .setFooter(`${DiscordHelper.findDisplayName(message!)}`, `${DiscordHelper.findDisplayAvatar(message!)}`)
 
                 if (isHatched) {
-                    returnMessage.setTitle(`T${tiers} - ${info.pokemon}`)
+                    returnMessage.setTitle(`🗡️ T${tiers} ${info.pokemon} ${info.titel}`)
                     returnMessage.setDescription(`Gym: ${info.titel!}.\nIt disapears at ${info.dtEnd}`);
                 }
                 else {
-                    returnMessage.setTitle(`T${tiers} - Unhatched`)
+                    returnMessage.setTitle(`🗡️ T${tiers} ${info.titel}`)
                     returnMessage.setDescription(`Gym: ${info.titel!}.\nIt hatches at ${info.dtEnd}`);
                 }
+
+                returnMessage.setTimestamp()
+                    .setFooter(`${DiscordHelper.findDisplayName(message)}`, `${DiscordHelper.findDisplayAvatar(message)}`)
+                    .setDescription(`Reageer met 👍 om te joinen\nReageer met:\n${['1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣', '9⃣'].join(' ')}\nom aan te geven dat je extra accounts of spelers mee hebt.\nLocatie: https://goo.gl/maps/Ty9VrxWW9uSYGhgy6`)
+                    .setThumbnail("https://pokemongohub.net/wp-content/uploads/2019/10/darkrai-halloween.jpg")
+                    .setColor(isHatched ? "00FF00" : "FFA500")
 
                 this.handleSuccess(message, returnMessage, uuidv4(), new Date(), info.titel!, info.pokemon!, isHatched, tiers);
             })
     }
 
     private static async handleError(message: Message, error: string): Promise<void> {
+        this.logger.log(`ErrorLocation: ${ScanRaidImageCommand.name}\nError: ${error}\nMessage: ${message}`)
         message.author.send(error);
     }
     private static async handleSuccess(message: Message, returnMessage: RichEmbed, guid: string, dateEnd: Date, gymName: string, pokemonName: string, isHatched: boolean, tiers: number) {
@@ -153,3 +173,7 @@ export class ScanRaidImageCommand {
     }
 }
 
+export enum CustomErrors {
+    UNDEFINED_OR_EMPTY_URL,
+    UNDEFINED_OR_EMPTY_RESULTS
+}
