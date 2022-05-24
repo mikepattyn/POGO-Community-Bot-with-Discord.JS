@@ -1,6 +1,3 @@
-auth.json
-lib/
-package-lock.json
-node_modules/*
-.env
-gsc.json
+*/bin/*
+*/obj/*
+*/node_modules/*
